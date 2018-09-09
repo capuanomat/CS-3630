@@ -21,6 +21,9 @@ class StateMachine:
         self.state = rs.IDLE
         self.robot = robot
 
+        self.img_clf = ImageClassifier()
+
+
     def run_robot(self):
         self.robot.camera.image_stream_enabled = True
         self.robot.camera.color_image_enabled = False
