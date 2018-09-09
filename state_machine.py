@@ -12,10 +12,12 @@ def run(sdk_conn):
     robot.camera.enable_auto_exposure()
 
     while True:
+        time.sleep(1)
         latest_image = robot.world.latest_image
         new_image = latest_image.raw_image
 
-        new_image.save("./imgs/" + str(type) + "_DAPHNE_IS_A_DAPHNE_" + timestamp + ".jpg")
+        timestamp = datetime.datetime.now().strftime("%dT%H%M%S%f")
+        new_image.save("_DAPHNE_IS_A_DAPHNE_" + timestamp + ".jpg")
 
 
 if __name__ == '__main__':
