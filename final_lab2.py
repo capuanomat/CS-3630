@@ -31,16 +31,17 @@ def run(sdk_conn):
             STATE = execute_idle(robot, img_clf)
         elif STATE == RobotState.DRONE:
             print("GETS TO HERE 1")
-            robot_speak(robot, 'Drone')
+            #robot_speak(robot, 'Drone')
             print("GETS TO HERE")
             STATE = execute_drone(robot)
         elif STATE == RobotState.ORDER:
-            robot_speak(robot, 'Order')
+            #robot_speak(robot, 'Order')
             STATE =execute_order(robot)
         elif STATE == RobotState.INSPECTION:
-            robot_speak(robot, 'Inspection')
+            #robot_speak(robot, 'Inspection')
             STATE = execute_inspection(robot)
         else:
+
             print('Invalid state, please try again.')
             sys.exit()
 
@@ -60,7 +61,7 @@ def execute_idle(robot, img_clf):
     # Print the predicted label and make the robot say it
     print("PREDICTED LABEL at: ", datetime.datetime.now().strftime("%dT%H%M%S%f"))
     print(predicted_label)
-    # robot.say_text(predicted_label[0]).wait_for_completed()
+    robot.say_text(predicted_label[0]).wait_for_completed()
 
     # Save the image (need to get the raw imagae again)
     timestamp = datetime.datetime.now().strftime("%dT%H%M%S%f")
@@ -68,16 +69,16 @@ def execute_idle(robot, img_clf):
     # temp_image.save("image" + str(predicted_label[0]) + ".jpg")
 
     if predicted_label[0] == "drone":
-        print("A DRONE indeed")
+        # print("DRONE state")
         return RobotState.DRONE
     elif predicted_label[0] == "order":
-        print("An ORDER indeed")
+        # print("ORDER state")
         return RobotState.ORDER
     elif predicted_label[0] == "inspection":
-        print("An INSPECTION indeed")
+        # print("INSPECTION state")
         return RobotState.INSPECTION
     else:
-        print("NOOOOOO")
+        # print("IDLE state")
         return RobotState.IDLE
 
 
@@ -93,16 +94,16 @@ def robot_speak(robot, speech):
     (6) Return to IDLE
 """
 def execute_drone(robot):
-    print("GETS INTPO DRONE METHOD")
+    # print("GETS INTO DRONE METHOD")
     cube = robot.world.wait_for_observed_light_cube(include_existing=True)  # Include cubes that are already visible
     pickup_action = robot.pickup_object(cube, num_retries=8)  # Allow 5 retries in case of failure
     pickup_action.wait_for_completed()  # Wait for robot pickup action to complete
     # robot_drive(25, 25, duration=10)  # Drive forward for 10cm; TODO determine time for 10cm
-    robot.drive_straight(distance_mm(100))  # Drive forward 10cm (4 inches), try instead of above line
+    robot.drive_straight(distance_mm(150), speed_mmps(50)).wait_for_completed()  # Drive forward 10cm (4 inches), try instead of above line
 
     setdown_action = robot.place_object_on_ground_here(cube, num_retries=5)  # Allow 5 retries in case of failure
     setdown_action.wait_for_completed()  # Wait for robot setdown action to complete
-    robot.ddrive_straight(distance_mm(-100))  # Drive backward 10cm (4 inches)
+    robot.drive_straight(distance_mm(-100), speed_mmps(50)).wait_for_completed()  # Drive backward 10cm (4 inches)
 
     return RobotState.IDLE  # Finally return to IDLE after execute_drone completed
 
@@ -113,7 +114,7 @@ def execute_drone(robot):
     TODO: figure out how long the duration needs to be
 """
 def execute_order(robot):
-    robot.drive_wheels(25, 50)  # TODO: test/modify these params for 10cm radius
+    robot.drive_wheels(25, 50, duration=23)  # TODO: test/modify these params for 10cm radius
     return RobotState.IDLE
 
 """
@@ -123,17 +124,17 @@ def execute_order(robot):
     (4) Return to IDLE
 """
 def execute_inspection(robot):
-    print("GETS INTO INSPECTION METHOD")
+    # print("GETS INTO INSPECTION METHOD")
     for i in range(4):  # for each side of the square
         inspection_helper(robot)
     robot.set_lift_height(0.0, in_parallel=False).wait_for_completed()  # Lower lift at the end
     return RobotState.IDLE
 
-
+# https://piazza.com/class/jl3r4kekzv14v3?cid=90
 def inspection_helper(robot):
-    robot.set_lift_height(1.0, in_parallel=True)
-    robot.drive_straight(distance_mm(200), speed_mmps(50), in_parallel=True).wait_for_completed()
-    robot.set_lift_height(0, in_parallel=True)
+    robot.set_lift_height(1.0, duration=2.5, in_parallel=True)
+    robot.drive_straight(distance_mm(250), speed_mmps(75), in_parallel=True).wait_for_completed()
+    robot.set_lift_height(0, duration=2.5, in_parallel=True)
     robot.turn_in_place(degrees(90), in_parallel=True).wait_for_completed()
 
 
