@@ -42,6 +42,8 @@ class StateMachine:
         self.state = IDLE
 
         while(True):  # Execute until someone terminates Terminator
+
+
             if self.state == RobotState.IDLE:
                 # self.robot_speak('Idle')
                 self.execute_idle()
