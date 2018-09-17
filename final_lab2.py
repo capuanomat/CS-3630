@@ -30,7 +30,9 @@ def run(sdk_conn):
         if STATE == RobotState.IDLE:
             STATE = execute_idle(robot, img_clf)
         elif STATE == RobotState.DRONE:
+            print("GETS TO HERE 1")
             robot_speak(robot, 'Drone')
+            print("GETS TO HERE")
             STATE = execute_drone(robot)
         elif STATE == RobotState.ORDER:
             robot_speak(robot, 'Order')
@@ -56,22 +58,26 @@ def execute_idle(robot, img_clf):
     predicted_label = img_clf.predict_labels(image_features)
 
     # Print the predicted label and make the robot say it
-    print("PREDICTED LABEL at: ", datetime.datetime.date())
+    print("PREDICTED LABEL at: ", datetime.datetime.now().strftime("%dT%H%M%S%f"))
     print(predicted_label)
-    robot.say_text(predicted_label[0]).wait_for_completed()
+    # robot.say_text(predicted_label[0]).wait_for_completed()
 
     # Save the image (need to get the raw imagae again)
     timestamp = datetime.datetime.now().strftime("%dT%H%M%S%f")
     temp_image = latest_image.raw_image
-    temp_image.save("image" + str(predicted_label[0]) + timestamp + ".jpg")
+    # temp_image.save("image" + str(predicted_label[0]) + ".jpg")
 
-    if predicted_label[0] == "Drone":
+    if predicted_label[0] == "drone":
+        print("A DRONE indeed")
         return RobotState.DRONE
-    elif predicted_label[0] == "Order":
+    elif predicted_label[0] == "order":
+        print("An ORDER indeed")
         return RobotState.ORDER
-    elif predicted_label[0] == "Inspection":
+    elif predicted_label[0] == "inspection":
+        print("An INSPECTION indeed")
         return RobotState.INSPECTION
     else:
+        print("NOOOOOO")
         return RobotState.IDLE
 
 
@@ -87,15 +93,16 @@ def robot_speak(robot, speech):
     (6) Return to IDLE
 """
 def execute_drone(robot):
+    print("GETS INTPO DRONE METHOD")
     cube = robot.world.wait_for_observed_light_cube(include_existing=True)  # Include cubes that are already visible
-    pickup_action = robot.pickup_object(cube, num_retries=5)  # Allow 5 retries in case of failure
+    pickup_action = robot.pickup_object(cube, num_retries=8)  # Allow 5 retries in case of failure
     pickup_action.wait_for_completed()  # Wait for robot pickup action to complete
     # robot_drive(25, 25, duration=10)  # Drive forward for 10cm; TODO determine time for 10cm
-    robot.do_drive(4)  # Drive forward 10cm (4 inches), try instead of above line
+    robot.drive_straight(distance_mm(100))  # Drive forward 10cm (4 inches), try instead of above line
 
     setdown_action = robot.place_object_on_ground_here(cube, num_retries=5)  # Allow 5 retries in case of failure
     setdown_action.wait_for_completed()  # Wait for robot setdown action to complete
-    robot.do_drive(-4)  # Drive backward 10cm (4 inches)
+    robot.ddrive_straight(distance_mm(-100))  # Drive backward 10cm (4 inches)
 
     return RobotState.IDLE  # Finally return to IDLE after execute_drone completed
 
@@ -116,6 +123,7 @@ def execute_order(robot):
     (4) Return to IDLE
 """
 def execute_inspection(robot):
+    print("GETS INTO INSPECTION METHOD")
     for i in range(4):  # for each side of the square
         inspection_helper(robot)
     robot.set_lift_height(0.0, in_parallel=False).wait_for_completed()  # Lower lift at the end
