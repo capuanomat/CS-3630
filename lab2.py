@@ -1,4 +1,5 @@
 from lab1 import *
+from Lab1_Soln import *
 import sys
 import cozmo
 from cozmo.util import degrees, distance_mm, speed_mmps
@@ -25,8 +26,12 @@ class StateMachine:
         self.robot = robot
 
     def run_robot(self):
+        # robot = sdk_conn.wait_for_robot()  # from sdk
+        robot.world.image_annotator.add_annotator('robotState', RobotStateDisplay)
+        robot.enable_device_imu(True, True, True)
+
         self.robot.camera.image_stream_enabled = True
-        self.robot.camera.color_image_enabled = False
+        self.robot.camera.color_image_enabled = False  # necessarY?
         self.robot.camera.enable_auto_exposure()
 
         latest_image = self.robot.world.latest_image
@@ -82,7 +87,7 @@ class StateMachine:
             that state.
     '''
     def execute_idle(self):
-        symbol_classifier = lab1.ImageClassifier()
+        symbol_classifier = Lab1_Soln.ImageClassifier()
 
 
 
@@ -125,46 +130,56 @@ class StateMachine:
         (4) Return to IDLE
     '''
     def execute_inspection(self):
-        drive1 = self.robot.drive_straight(distance_mm(200), speed_mmps(50), in_parallel=True) # Drive for 20cm (200mm); fix speed if necessary
-        turn1 = self.robot.turn_in_place(degrees(90))  # Turn 90 degrees to begin next part of square
-        raise1 = self.robot.set_lift_height(1.0)  # Raise lift
-        lower1 = self.robot.set_lift_height(0.0)  # Lower lift
-        drive1.wait_for_completed()
-        turn1.wait_for_completed()
-        raise1.wait_for_completed()
-        lower1.wait_for_completed()
+        for i in range(4):  # for each side of the square
+            self.inspection_helper()
+        # drive1 = self.robot.drive_straight(distance_mm(200), speed_mmps(50), in_parallel=True) # Drive for 20cm (200mm); fix speed if necessary
+        # turn1 = self.robot.turn_in_place(degrees(90))  # Turn 90 degrees to begin next part of square
+        # raise1 = self.robot.set_lift_height(1.0)  # Raise lift
+        # lower1 = self.robot.set_lift_height(0.0)  # Lower lift
+        # drive1.wait_for_completed()
+        # turn1.wait_for_completed()
+        # raise1.wait_for_completed()
+        # lower1.wait_for_completed()
 
-        drive2 = self.robot.drive_straight(distance_mm(200), speed_mmps(50), in_parallel=True)  # Drive for 20cm (200mm); fix speed if necessary
-        turn2 = self.robot.turn_in_place(degrees(90))  # Turn 90 degrees to begin next part of square
-        raise2 = self.robot.set_lift_height(1.0)  # Raise lift
-        lower2 = self.robot.set_lift_height(0.0)  # Lower lift
-        drive2.wait_for_completed()
-        turn2.wait_for_completed()
-        raise2.wait_for_completed()
-        lower2.wait_for_completed()
+        # drive2 = self.robot.drive_straight(distance_mm(200), speed_mmps(50), in_parallel=True)  # Drive for 20cm (200mm); fix speed if necessary
+        # turn2 = self.robot.turn_in_place(degrees(90))  # Turn 90 degrees to begin next part of square
+        # raise2 = self.robot.set_lift_height(1.0)  # Raise lift
+        # lower2 = self.robot.set_lift_height(0.0)  # Lower lift
+        # drive2.wait_for_completed()
+        # turn2.wait_for_completed()
+        # raise2.wait_for_completed()
+        # lower2.wait_for_completed()
 
-        drive3 = self.robot.drive_straight(distance_mm(200), speed_mmps(50), in_parallel=True)  # Drive for 20cm (200mm); fix speed if necessary
-        turn3 = self.robot.turn_in_place(degrees(90)).wait_for_completed()  # Turn 90 degrees to begin next part of square
-        raise3 = self.robot.set_lift_height(1.0)  # Raise lift
-        lower3 = self.robot.set_lift_height(0.0)  # Lower lift
-        drive3.wait_for_completed()
-        turn3.wait_for_completed()
-        raise3.wait_for_completed()
-        lower3.wait_for_completed()
+        # drive3 = self.robot.drive_straight(distance_mm(200), speed_mmps(50), in_parallel=True)  # Drive for 20cm (200mm); fix speed if necessary
+        # turn3 = self.robot.turn_in_place(degrees(90)).wait_for_completed()  # Turn 90 degrees to begin next part of square
+        # raise3 = self.robot.set_lift_height(1.0)  # Raise lift
+        # lower3 = self.robot.set_lift_height(0.0)  # Lower lift
+        # drive3.wait_for_completed()
+        # turn3.wait_for_completed()
+        # raise3.wait_for_completed()
+        # lower3.wait_for_completed()
 
-        drive4 = self.robot.drive_straight(distance_mm(200), speed_mmps(50), in_parallel=True)  # Drive for 20cm (200mm); fix speed if necessary
-        raise4 = self.robot.set_lift_height(1.0)
-        lower4 = self.robot.set_lift_height(0.0)
+        # drive4 = self.robot.drive_straight(distance_mm(200), speed_mmps(50), in_parallel=True)  # Drive for 20cm (200mm); fix speed if necessary
+        # raise4 = self.robot.set_lift_height(1.0)
+        # lower4 = self.robot.set_lift_height(0.0)
 
-        self.robot.set_lift_height(0.0, in_parallel=False)  # Lower lift at the end
+        self.robot.set_lift_height(0.0, in_parallel=False).wait_for_completed()  # Lower lift at the end
         self.state = IDLE
+
+    def inspection_helper(self):
+        self.robot.set_lift_height(1.0, in_parallel=True)
+        self.robot.drive_straight(distance_mm(200), speed_mmps(50), in_parallel=True).wait_for_completed()
+        self.robot.set_lift_height(0, in_parallel=True)
+        self.robot.turn_in_place(degrees(90), in_parallel=True).wait_for_completed()
 
 
 def main():
     try:
-        cozmo.connect(run)
+        # cozmo.connect(run)
         sm = StateMachine()
-        sm.run_robot()
+        cozmo.connect(sm.run_robot())
+
+        # cozmo.run_program(run)
 
     except cozmo.ConnectionError as e:
         sys.exit("A connection error occurred: %s" % e)
