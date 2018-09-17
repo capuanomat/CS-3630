@@ -6,7 +6,7 @@ import time
 import numpy as np
 from skimage import color
 
-from lab1 import *
+from Lab1_Soln import *
 
 def run(sdk_conn):
     robot = sdk_conn.wait_for_robot()

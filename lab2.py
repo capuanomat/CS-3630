@@ -1,4 +1,3 @@
-from lab1 import *
 from Lab1_Soln import *
 import sys
 import cozmo
@@ -20,8 +19,8 @@ class RobotState:
 
 class StateMachine:
 
-    def __init__(self, state, robot: cozmo.robot.Robot):
-        rs = RobotState()
+    def __init__(self, state, robot):
+        # rs = RobotState()
         self.state = rs.IDLE
         self.robot = robot
 
@@ -44,7 +43,7 @@ class StateMachine:
 
         while(True):  # Execute until someone terminates Terminator
             if self.state == RobotState.IDLE:
-                self.robot_speak('Idle')
+                # self.robot_speak('Idle')
                 self.execute_idle()
             elif self.state == RobotState.DRONE:
                 self.robot_speak('Drone')
@@ -176,7 +175,8 @@ class StateMachine:
 def main():
     try:
         # cozmo.connect(run)
-        sm = StateMachine()
+        rs = RobotState()
+        sm = StateMachine(rs.IDLE, robot: cozmo.robot.Robot)
         cozmo.connect(sm.run_robot())
 
         # cozmo.run_program(run)
